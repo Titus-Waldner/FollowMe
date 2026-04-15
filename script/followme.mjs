@@ -209,13 +209,12 @@ Hooks.once("init", () => {
     default: false
   });
 
-  // Changed default key from KeyF --> KeyL because KeyF is now used by the core system in V11+
   game.keybindings.register(MOD_NAME, "follow", {
     name: "FollowMe",
     hint: lang('key_hint'),
     editable: [
       {
-        key: "KeyL"
+        key: "KeyF"
       }
     ],
     onDown: () => { follow(); },
