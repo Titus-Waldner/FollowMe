@@ -2,7 +2,7 @@
   "id": "FollowMe",
   "title": "Follow Me!",
   "description": "Allows tokens to follow other tokens.",
-  "version": "10.0.3",
+  "version": "11.0.0",
   "authors": [
     {
       "name": "o_Ove",
@@ -37,7 +37,7 @@
   "license": "LICENSE",
   "readme": "README.md",
   "compatibility": {
-    "minimum": "10",
-    "verified": "12"
+    "minimum": "11",
+    "verified": "11"
   }
 }

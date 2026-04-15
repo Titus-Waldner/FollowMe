@@ -1,14 +1,14 @@
 /*
-▓█████▄  ██▀███           ▒█████  
-▒██▀ ██▌▓██ ▒ ██▒        ▒██▒  ██▒
-░██   █▌▓██ ░▄█ ▒        ▒██░  ██▒
-░▓█▄   ▌▒██▀▀█▄          ▒██   ██░
-░▒████▓ ░██▓ ▒██▒ ██▓    ░ ████▓▒░
- ▒▒▓  ▒ ░ ▒▓ ░▒▓░ ▒▓▒    ░ ▒░▒░▒░ 
- ░ ▒  ▒   ░▒ ░ ▒░ ░▒       ░ ▒ ▒░ 
- ░ ░  ░   ░░   ░  ░      ░ ░ ░ ▒  
-   ░       ░       ░         ░ ░  
- ░                 ░              
+▓█████▄ ██▀███ ▒█████
+▒██▀ ██▌▓██ ▒ ██▒ ▒██▒ ██▒
+░██ █▌▓██ ░▄█ ▒ ▒██░ ██▒
+░▓█▄ ▌▒██▀▀█▄ ▒██ ██░
+░▒████▓ ░██▓ ▒██▒ ██▓ ░ ████▓▒░
+ ▒▒▓ ▒ ░ ▒▓ ░▒▓░ ▒▓▒ ░ ▒░▒░▒░
+ ░ ▒ ▒ ░▒ ░ ▒░ ░▒ ░ ▒ ▒░
+ ░ ░ ░ ░░ ░ ░ ░ ░ ▒
+   ░ ░ ░ ░ ░
+ ░ ░
  */
 import * as utils from "./utils.mjs"
 
@@ -21,7 +21,7 @@ function lang(k){
 }
 
 function addFollower(leader, follower){
-  if (!canvas.scene.id in fCache){
+  if (!(canvas.scene.id in fCache)){
     fCache[canvas.scene.id]={};
   }
 }
@@ -34,13 +34,13 @@ function strTemplate(s, o){
 }
 
 /**
- * @param {*} obj 
+ * @param {*} obj
  * @returns {Boolean} true if obj is an empty object {}
  */
 function emptyObj(obj){
   return (
-         obj && 
-         Object.keys(obj).length === 0 && 
+         obj &&
+         Object.keys(obj).length === 0 &&
          Object.getPrototypeOf(obj) === Object.prototype);
 }
 
@@ -54,8 +54,8 @@ function scrollText(token, text){
     x: token.x,
     y: token.y,
     text: text,
-    anchor: CONST.TEXT_ANCHOR_POINTS.TOP, 
-    fill:   "#FFFFFF", 
+    anchor: CONST.TEXT_ANCHOR_POINTS.TOP,
+    fill: "#FFFFFF",
     stroke: "#FFFFFF"
   }
   canvas.interface.createScrollingText(token, text, config);
@@ -63,7 +63,7 @@ function scrollText(token, text){
 
 function stopFollowing( token, whom, collided = false ){
   if (collided){
-    scrollText(token.object, strTemplate(lang("collided"), {name:whom}));  
+    scrollText(token.object, strTemplate(lang("collided"), {name:whom}));
   }else{
     scrollText(token.object, strTemplate(lang("stopped"), {name:whom}));
   }
@@ -72,25 +72,21 @@ function stopFollowing( token, whom, collided = false ){
   }
 }
 
-
-// Hook into token movemen. Push 'pushables' along with this movement, and cancel movement if pushing is not possible
+// Hook into token movement. Push 'pushables' along with this movement, and cancel movement if pushing is not possible
 Hooks.on('updateToken', (token, change, options, user_id)=>{
-  // Check if this is a "movement" 
-  if (!hasProperty(change,'x')&&!(hasProperty(change, 'y'))){return true;}
+  // Check if this is a "movement"
+  if (!hasProperty(change,'x') && !hasProperty(change, 'y')){return true;}
   if (!hasProperty(options, 'by_following') && token.getFlag(MOD_NAME, FLAG_FOLLOWING)!=null){
     // This movement came from another source than this module, lets stop following
     let flw = token.getFlag(MOD_NAME, FLAG_FOLLOWING);
     let ldr = canvas.tokens.get(flw.who);
     stopFollowing(token, ldr?.name);
   }
-
   // Find tokens following this one
   let followers = canvas.tokens.placeables.filter( t=>{return t.document.getFlag(MOD_NAME, FLAG_FOLLOWING)?.who == token.id} );
-
   let p = {x:token.x, y:token.y};
   if (hasProperty(change,'x')) p.x=change.x;
   if (hasProperty(change,'y')) p.y=change.y;
-
   for (let follower of followers){
     if (!follower.isOwner){
       continue;
@@ -98,18 +94,15 @@ Hooks.on('updateToken', (token, change, options, user_id)=>{
     let desc = follower.document.getFlag(MOD_NAME, FLAG_FOLLOWING);
     desc.positions.push(p);
     let sp = new utils.SimpleSpline(desc.positions);
-
     let param = sp.plen-desc.dist;
     let new_pos = sp.parametricPosition(param);
     let data = {};
-
     // If snap, snap new_pos
     if (game.settings.get(MOD_NAME, 'snap_to_grid')){
       new_pos = canvas.grid.getSnappedPosition( new_pos.x, new_pos.y );
     }
     data.x = new_pos.x;
     data.y = new_pos.y;
-
     // If orienting, add rotation to the update
     if (game.settings.get(MOD_NAME, 'orienting')){
       let der = sp.derivative(param);
@@ -117,10 +110,13 @@ Hooks.on('updateToken', (token, change, options, user_id)=>{
       if (!isNaN(an)) data.rotation = an;
     }
 
+    // === V11 COLLISION FIX (replaces the old canvas.walls.checkCollision) ===
     if (game.settings.get(MOD_NAME, 'collisions')){
-      let ray = new Ray( follower.center, utils.vAdd(new_pos, { x: follower.bounds.width/2,
-                                                                y: follower.bounds.height/2} ) );
-      if (canvas.walls.checkCollision(ray, options={type: "move", mode: "any"})){
+      if (CONFIG.Canvas.polygonBackends.move.testCollision(
+        follower.center,
+        utils.vAdd(new_pos, { x: follower.bounds.width/2, y: follower.bounds.height/2} ),
+        { type: "move", mode: "any" }
+      )) {
         stopFollowing(follower.document, token.name, true);
         // Do not apply update
         continue;
@@ -130,24 +126,17 @@ Hooks.on('updateToken', (token, change, options, user_id)=>{
     sp.prune(param);
     desc.positions = sp.p;
     data['flags.FollowMe.following'] = desc
-
     follower.document.update(
       data, {by_following:true});
   }
-
 });
-
 
 function follow(){
   let leader = canvas.tokens.hover;
   let followers = canvas.tokens.controlled;
-
   if (leader === null || emptyObj(followers)){
     return;
   }
-  //console.warn("leader", leader);
-  //console.warn("followers", followers);
-
   for (let follower of followers){
     if (leader.id === follower.id){
       scrollText(leader, lang('followYourself'));
@@ -156,27 +145,24 @@ function follow(){
       let token = canvas.tokens.get(follower.id);
       let dist = Math.sqrt( (token.x-leader.x)**2 + (token.y-leader.y)**2);
       let distance = Math.round( canvas.scene.dimensions.distance * dist/canvas.scene.dimensions.size );
-
       let text = strTemplate(lang('following'), {distance:distance,
                                                  unit: canvas.scene.grid.units,
                                                  name: leader.name});
       scrollText(token, text);
-      token.document.setFlag(MOD_NAME, FLAG_FOLLOWING, 
+      token.document.setFlag(MOD_NAME, FLAG_FOLLOWING,
         {
-          who:leader.id, 
-          dist:dist, 
+          who:leader.id,
+          dist:dist,
           positions:[{x:token.x, y:token.y}, {x:leader.x, y:leader.y}]
         });
       }
   }
 }
 
-
-Hooks.on("updateCombat", (combat, change, settings, id)=>{  
-  if(!game.user.isGM) return;                                            // Not a DM
-  if(combat.previous.round !== 0 || combat.previous.turn !== 0) return;  // Not the start of combat
-  if(!game.settings.get(MOD_NAME, "combat")) return ;                    // We don't care (setting)
-
+Hooks.on("updateCombat", (combat, change, settings, id)=>{
+  if(!game.user.isGM) return; // Not a DM
+  if(combat.previous.round !== 0 || combat.previous.turn !== 0) return; // Not the start of combat
+  if(!game.settings.get(MOD_NAME, "combat")) return ; // We don't care (setting)
   // We are the GM, And this is the very start of the combat.
   canvas.tokens.placeables
     .filter((t)=>t.document.getFlag(MOD_NAME, FLAG_FOLLOWING))
@@ -185,11 +171,9 @@ Hooks.on("updateCombat", (combat, change, settings, id)=>{
     });
 });
 
-
-
 // Settings:
-Hooks.once("init", () => {  
-  
+Hooks.once("init", () => {
+ 
   game.settings.register(MOD_NAME, "snap_to_grid", {
     name: lang("snap"),
     hint: lang("snap_hint"),
@@ -198,7 +182,7 @@ Hooks.once("init", () => {
     type: Boolean,
     default: false
   });
-  
+ 
   game.settings.register(MOD_NAME, "collisions", {
     name: lang("collision"),
     hint: lang("collision_hint"),
@@ -207,7 +191,6 @@ Hooks.once("init", () => {
     type: Boolean,
     default: false
   });
-
   game.settings.register(MOD_NAME, "orienting", {
     name: lang("orienting"),
     hint: lang("orienting_hint"),
@@ -216,7 +199,7 @@ Hooks.once("init", () => {
     type: Boolean,
     default: false
   });
-  
+ 
   game.settings.register(MOD_NAME, "combat", {
     name: lang("combat"),
     hint: lang("combat_hint"),
@@ -226,13 +209,13 @@ Hooks.once("init", () => {
     default: false
   });
 
-
+  // Changed default key from KeyF --> KeyL because KeyF is now used by the core system in V11+
   game.keybindings.register(MOD_NAME, "follow", {
     name: "FollowMe",
     hint: lang('key_hint'),
     editable: [
       {
-        key: "KeyF"
+        key: "KeyL"
       }
     ],
     onDown: () => { follow(); },
@@ -240,5 +223,3 @@ Hooks.once("init", () => {
     precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
   });
 });
-
-
