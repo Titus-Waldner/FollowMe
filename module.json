@@ -18,7 +18,7 @@
     "script/followme.mjs"
   ],
   "url": "https://github.com/Titus-Waldner/FollowMe",
-  "download": "https://github.com/oOve/followme/archive/10.0.3.zip",
+  "download": "https://github.com/Titus-Waldner/FollowMe/archive/refs/tags/FoundryVTT.zip",
   "manifest": "https://github.com/Titus-Waldner/FollowMe/releases/download/FoundryVTT/module.json",
   "languages": [
     {
