@@ -4,7 +4,7 @@
 **Fork Notice**  
 This is a **community fork** of the original **Follow Me** module by **oOve** (Dr.O).  
 All credit for the original idea and code goes to the original author.  
-**This fork has been updated for Foundry VTT V11 compatibility** (no more console warnings, updated collision handling, and default key changed to **L**).
+**This fork has been updated for Foundry VTT V11 compatibility** (no more console warnings, updated collision handling).
 
 **Follow Me** is a module for [Foundry VTT](https://foundryvtt.com/ "Foundry VTT") that allows tokens to follow or be followed by other tokens. This is completely system agnostic, and fully customizable to fit right into your game.
 
@@ -14,7 +14,7 @@ All credit for the original idea and code goes to the original author.
 </p>
 
 # Usage
-Select your token, hover the mouse over the one you wish to follow and press the "**L**" key (default in this V11 fork). Your token now follows behind maintaining the same distance. To stop following, simply move your token.
+Select your token, hover the mouse over the one you wish to follow and press the "**f**" key. Your token now follows behind maintaining the same distance. To stop following, simply move your token.
 
 ![ezgif-3-5912d53231](https://user-images.githubusercontent.com/8543541/167747299-fa7949a4-64b7-4106-b378-a1dd4a253922.gif)
 

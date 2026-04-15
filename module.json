@@ -17,9 +17,9 @@
   "esmodules": [
     "script/followme.mjs"
   ],
-  "url": "https://github.com/oOve/followme",
+  "url": "https://github.com/Titus-Waldner/FollowMe",
   "download": "https://github.com/oOve/followme/archive/10.0.3.zip",
-  "manifest": "https://github.com/oOve/followme/releases/latest/download/module.json",
+  "manifest": "https://github.com/Titus-Waldner/FollowMe/releases/download/FoundryVTT/module.json",
   "languages": [
     {
       "lang": "en",
@@ -41,3 +41,4 @@
     "verified": "11"
   }
 }
+
